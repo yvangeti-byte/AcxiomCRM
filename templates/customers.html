@@ -1,0 +1,519 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="form-container">
+
+    <div class="page-header">
+
+        <div>
+
+            {% if edit_mode %}
+                <h1>Edit Customer</h1>
+                <p>Update customer information.</p>
+            {% else %}
+                <h1>Add Customer</h1>
+                <p>Create a new customer record.</p>
+            {% endif %}
+
+        </div>
+
+        <a
+            href="{{ url_for('customers') }}"
+            class="btn btn-secondary"
+        >
+            Back to Customers
+        </a>
+
+    </div>
+
+
+    <div class="card">
+
+        <form
+            method="POST"
+            id="customerForm"
+        >
+
+            <!-- NAME -->
+
+            <div class="form-group">
+
+                <label for="name">
+                    Customer Name *
+                </label>
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    required
+                    minlength="2"
+                    maxlength="120"
+                    value="{{ customer.name if customer else '' }}"
+                    placeholder="Enter customer name"
+                >
+
+            </div>
+
+
+            <!-- EMAIL -->
+
+            <div class="form-group">
+
+                <label for="email">
+                    Email *
+                </label>
+
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    maxlength="150"
+                    value="{{ customer.email if customer else '' }}"
+                    placeholder="customer@example.com"
+                >
+
+                <small id="emailError"></small>
+
+            </div>
+
+
+            <!-- PHONE -->
+
+            <div class="form-group">
+
+                <label for="phone">
+                    Phone *
+                </label>
+
+                <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    required
+                    minlength="10"
+                    maxlength="15"
+                    value="{{ customer.phone if customer else '' }}"
+                    placeholder="Enter phone number"
+                >
+
+                <small id="phoneError"></small>
+
+            </div>
+
+
+            <!-- ADDRESS -->
+
+            <div class="form-group">
+
+                <label for="address">
+                    Address
+                </label>
+
+                <textarea
+                    id="address"
+                    name="address"
+                    rows="3"
+                    maxlength="500"
+                    placeholder="Enter customer address"
+                >{{ customer.address if customer else '' }}</textarea>
+
+            </div>
+
+
+            <!-- STATUS -->
+
+            <div class="form-group">
+
+                <label for="status">
+                    Status
+                </label>
+
+                <select
+                    id="status"
+                    name="status"
+                >
+
+                    <option
+                        value="Active"
+                        {% if customer and customer.status == "Active" %}
+                            selected
+                        {% endif %}
+                    >
+                        Active
+                    </option>
+
+                    <option
+                        value="Inactive"
+                        {% if customer and customer.status == "Inactive" %}
+                            selected
+                        {% endif %}
+                    >
+                        Inactive
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- NOTES -->
+
+            <div class="form-group">
+
+                <label for="notes">
+                    Notes
+                </label>
+
+                <textarea
+                    id="notes"
+                    name="notes"
+                    rows="4"
+                    maxlength="1000"
+                    placeholder="Enter customer notes"
+                >{{ customer.notes if customer else '' }}</textarea>
+
+            </div>
+
+
+            <!-- BUTTONS -->
+
+            <div class="form-actions">
+
+                <a
+                    href="{{ url_for('customers') }}"
+                    class="btn btn-secondary"
+                >
+                    Cancel
+                </a>
+
+
+                {% if edit_mode %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Update Customer
+                    </button>
+
+                {% else %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Create Customer
+                    </button>
+
+                {% endif %}
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<style>
+
+/* ==========================
+   FORM CONTAINER
+   ========================== */
+
+.form-container {
+
+    max-width: 800px;
+
+    margin: 0 auto;
+
+}
+
+
+/* ==========================
+   PAGE HEADER
+   ========================== */
+
+.page-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 25px;
+
+}
+
+
+.page-header h1 {
+
+    margin-bottom: 5px;
+
+}
+
+
+.page-header p {
+
+    color: #666;
+
+}
+
+
+/* ==========================
+   CARD
+   ========================== */
+
+.card {
+
+    background: white;
+
+    padding: 30px;
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.08);
+
+}
+
+
+/* ==========================
+   FORM GROUP
+   ========================== */
+
+.form-group {
+
+    margin-bottom: 20px;
+
+}
+
+
+.form-group label {
+
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-weight: 600;
+
+}
+
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+
+    width: 100%;
+
+    padding: 11px 12px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 6px;
+
+    font-size: 15px;
+
+    font-family: inherit;
+
+    box-sizing: border-box;
+
+}
+
+
+.form-group textarea {
+
+    resize: vertical;
+
+}
+
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+
+    outline: none;
+
+    border-color: #2563eb;
+
+}
+
+
+.form-group small {
+
+    display: block;
+
+    margin-top: 5px;
+
+    color: #dc2626;
+
+}
+
+
+/* ==========================
+   FORM ACTIONS
+   ========================== */
+
+.form-actions {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    margin-top: 25px;
+
+}
+
+
+/* ==========================
+   BUTTONS
+   ========================== */
+
+.btn {
+
+    display: inline-block;
+
+    padding: 10px 18px;
+
+    border: none;
+
+    border-radius: 6px;
+
+    text-decoration: none;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+}
+
+
+.btn-primary {
+
+    background: #2563eb;
+
+    color: white;
+
+}
+
+
+.btn-primary:hover {
+
+    background: #1d4ed8;
+
+}
+
+
+.btn-secondary {
+
+    background: #6b7280;
+
+    color: white;
+
+}
+
+
+.btn-secondary:hover {
+
+    background: #4b5563;
+
+}
+
+</style>
+
+
+<!-- ==========================
+     CLIENT-SIDE VALIDATION
+     ========================== -->
+
+<script>
+
+const customerForm =
+    document.getElementById("customerForm");
+
+const emailInput =
+    document.getElementById("email");
+
+const phoneInput =
+    document.getElementById("phone");
+
+const emailError =
+    document.getElementById("emailError");
+
+const phoneError =
+    document.getElementById("phoneError");
+
+
+customerForm.addEventListener(
+    "submit",
+    function(event) {
+
+        let valid = true;
+
+
+        /* EMAIL VALIDATION */
+
+        const email =
+            emailInput.value.trim();
+
+        const emailPattern =
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+
+        if (!emailPattern.test(email)) {
+
+            emailError.textContent =
+                "Please enter a valid email address.";
+
+            valid = false;
+
+        } else {
+
+            emailError.textContent = "";
+
+        }
+
+
+        /* PHONE VALIDATION */
+
+        const phone =
+            phoneInput.value.trim();
+
+
+        if (
+            !/^\d+$/.test(phone)
+            || phone.length < 10
+            || phone.length > 15
+        ) {
+
+            phoneError.textContent =
+                "Phone number must contain 10 to 15 digits.";
+
+            valid = false;
+
+        } else {
+
+            phoneError.textContent = "";
+
+        }
+
+
+        if (!valid) {
+
+            event.preventDefault();
+
+        }
+
+    }
+);
+
+</script>
+
+{% endblock %}

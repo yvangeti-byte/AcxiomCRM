@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card form-card">
+
+    <h1>AcxiomCRM Login</h1>
+
+    <p class="muted">
+        Sign in to access the CRM system.
+    </p>
+
+    <form method="POST">
+
+        <label for="email">
+            Email
+        </label>
+
+        <input
+            type="email"
+            id="email"
+            name="email"
+            required
+        >
+
+        <label for="password">
+            Password
+        </label>
+
+        <input
+            type="password"
+            id="password"
+            name="password"
+            required
+        >
+
+        <button type="submit">
+            Login
+        </button>
+
+    </form>
+
+    <p>
+        Don't have an account?
+
+        <a href="{{ url_for('register') }}">
+            Register
+        </a>
+    </p>
+
+    <hr>
+
+    <p>
+        <strong>Demo Admin Account</strong>
+    </p>
+
+    <p>
+        Email:
+        admin@acxiomcrm.com
+    </p>
+
+    <p>
+        Password:
+        Admin@123
+    </p>
+
+</div>
+
+{% endblock %}

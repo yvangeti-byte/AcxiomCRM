@@ -1,0 +1,440 @@
+{% extends "base.html" %}
+
+{% block title %}Leads - AcxiomCRM{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1>Leads</h1>
+        <p>Manage and track your sales leads.</p>
+    </div>
+
+    <a href="{{ url_for('create_lead') }}" class="btn btn-primary">
+        + Add Lead
+    </a>
+</div>
+
+
+<div class="toolbar">
+
+    <input
+        type="text"
+        id="searchInput"
+        placeholder="Search leads..."
+        onkeyup="filterLeads()"
+    >
+
+    <select id="statusFilter" onchange="filterLeads()">
+        <option value="">All Statuses</option>
+        <option value="New">New</option>
+        <option value="Contacted">Contacted</option>
+        <option value="Qualified">Qualified</option>
+        <option value="Unqualified">Unqualified</option>
+        <option value="Converted">Converted</option>
+        <option value="Lost">Lost</option>
+    </select>
+
+    <select id="priorityFilter" onchange="filterLeads()">
+        <option value="">All Priorities</option>
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option>
+    </select>
+
+</div>
+
+
+<div class="table-container">
+
+    <table id="leadsTable">
+
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Lead</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Source</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Assigned To</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for lead in leads %}
+
+            <tr>
+
+                <td>{{ lead.id }}</td>
+
+                <td>
+                    <strong>{{ lead.name }}</strong>
+                </td>
+
+                <td>
+                    {{ lead.email }}
+                </td>
+
+                <td>
+                    {{ lead.phone }}
+                </td>
+
+                <td>
+                    {{ lead.source or '-' }}
+                </td>
+
+                <td>
+
+                    {% if lead.status == 'New' %}
+                        <span class="badge badge-blue">New</span>
+
+                    {% elif lead.status == 'Contacted' %}
+                        <span class="badge badge-yellow">Contacted</span>
+
+                    {% elif lead.status == 'Qualified' %}
+                        <span class="badge badge-green">Qualified</span>
+
+                    {% elif lead.status == 'Unqualified' %}
+                        <span class="badge badge-gray">Unqualified</span>
+
+                    {% elif lead.status == 'Converted' %}
+                        <span class="badge badge-purple">Converted</span>
+
+                    {% elif lead.status == 'Lost' %}
+                        <span class="badge badge-red">Lost</span>
+
+                    {% else %}
+                        <span class="badge badge-gray">
+                            {{ lead.status }}
+                        </span>
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    {% if lead.priority == 'High' %}
+                        <span class="badge badge-red">High</span>
+
+                    {% elif lead.priority == 'Medium' %}
+                        <span class="badge badge-yellow">Medium</span>
+
+                    {% elif lead.priority == 'Low' %}
+                        <span class="badge badge-green">Low</span>
+
+                    {% else %}
+                        -
+                    {% endif %}
+
+                </td>
+
+                <td>
+                    {% if lead.owner %}
+                        {{ lead.owner.name or lead.owner.email }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <td class="actions">
+
+                    <a
+                        href="{{ url_for('edit_lead', id=lead.id) }}"
+                        class="btn btn-small btn-edit">
+                        Edit
+                    </a>
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('delete_lead', id=lead.id) }}"
+                        style="display:inline;"
+                        onsubmit="return confirm('Are you sure you want to delete this lead?');">
+
+                        <button
+                            type="submit"
+                            class="btn btn-small btn-delete">
+                            Delete
+                        </button>
+
+                    </form>
+
+                </td>
+
+            </tr>
+
+            {% else %}
+
+            <tr>
+                <td colspan="9" class="empty-state">
+                    No leads found.
+                    <a href="{{ url_for('create_lead') }}">
+                        Add your first lead
+                    </a>
+                </td>
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+
+<style>
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    gap: 20px;
+}
+
+.page-header h1 {
+    margin: 0 0 6px;
+}
+
+.page-header p {
+    margin: 0;
+    color: #6b7280;
+}
+
+.toolbar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.toolbar input,
+.toolbar select {
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    font-size: 14px;
+    background: white;
+}
+
+.toolbar input {
+    min-width: 280px;
+}
+
+.table-container {
+    background: white;
+    border-radius: 12px;
+    overflow-x: auto;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background: #f3f4f6;
+}
+
+th,
+td {
+    padding: 14px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+th {
+    font-size: 13px;
+    font-weight: 700;
+    color: #374151;
+}
+
+td {
+    font-size: 14px;
+    color: #4b5563;
+}
+
+tbody tr:hover {
+    background: #f9fafb;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 16px;
+    border-radius: 7px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: #2563eb;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #1d4ed8;
+}
+
+.btn-small {
+    padding: 7px 11px;
+    font-size: 12px;
+}
+
+.btn-edit {
+    background: #2563eb;
+    color: white;
+}
+
+.btn-edit:hover {
+    background: #1d4ed8;
+}
+
+.btn-delete {
+    background: #dc2626;
+    color: white;
+}
+
+.btn-delete:hover {
+    background: #b91c1c;
+}
+
+.actions {
+    min-width: 130px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.badge-blue {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.badge-yellow {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-green {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.badge-gray {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.badge-purple {
+    background: #ede9fe;
+    color: #6d28d9;
+}
+
+.badge-red {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #6b7280;
+}
+
+.empty-state a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+@media (max-width: 700px) {
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .toolbar {
+        flex-direction: column;
+    }
+
+    .toolbar input,
+    .toolbar select {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+}
+
+</style>
+
+
+<script>
+
+function filterLeads() {
+
+    const searchValue =
+        document.getElementById("searchInput")
+            .value
+            .toLowerCase();
+
+    const statusValue =
+        document.getElementById("statusFilter")
+            .value
+            .toLowerCase();
+
+    const priorityValue =
+        document.getElementById("priorityFilter")
+            .value
+            .toLowerCase();
+
+    const rows =
+        document.querySelectorAll("#leadsTable tbody tr");
+
+    rows.forEach(function(row) {
+
+        const rowText =
+            row.innerText.toLowerCase();
+
+        const matchesSearch =
+            rowText.includes(searchValue);
+
+        const matchesStatus =
+            !statusValue ||
+            rowText.includes(statusValue);
+
+        const matchesPriority =
+            !priorityValue ||
+            rowText.includes(priorityValue);
+
+        if (
+            matchesSearch &&
+            matchesStatus &&
+            matchesPriority
+        ) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+
+    });
+
+}
+
+</script>
+
+{% endblock %}

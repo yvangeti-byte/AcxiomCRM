@@ -1,0 +1,575 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="form-page">
+
+    <div class="page-header">
+
+        <div>
+            {% if edit_mode %}
+                <h1>Edit Lead</h1>
+                <p>Update the lead information.</p>
+            {% else %}
+                <h1>Add Lead</h1>
+                <p>Create a new CRM lead.</p>
+            {% endif %}
+        </div>
+
+        <a href="{{ url_for('leads') }}" class="btn btn-secondary">
+            Back to Leads
+        </a>
+
+    </div>
+
+
+    <div class="form-card">
+
+        <form method="POST" id="leadForm">
+
+            <!-- NAME -->
+
+            <div class="form-group">
+
+                <label for="name">
+                    Lead Name <span class="required">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value="{{ lead.name if lead else '' }}"
+                    required
+                    maxlength="100"
+                    placeholder="Enter lead name"
+                >
+
+            </div>
+
+
+            <!-- EMAIL -->
+
+            <div class="form-group">
+
+                <label for="email">
+                    Email <span class="required">*</span>
+                </label>
+
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value="{{ lead.email if lead else '' }}"
+                    required
+                    maxlength="120"
+                    placeholder="example@email.com"
+                >
+
+                <small>
+                    Enter a valid email address.
+                </small>
+
+            </div>
+
+
+            <!-- PHONE -->
+
+            <div class="form-group">
+
+                <label for="phone">
+                    Phone <span class="required">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    id="phone"
+                    name="phone"
+                    value="{{ lead.phone if lead else '' }}"
+                    required
+                    maxlength="15"
+                    pattern="[0-9]{10,15}"
+                    placeholder="10-15 digit phone number"
+                >
+
+                <small>
+                    Phone number must contain 10 to 15 digits.
+                </small>
+
+            </div>
+
+
+            <!-- SOURCE -->
+
+            <div class="form-group">
+
+                <label for="source">
+                    Lead Source
+                </label>
+
+                <select id="source" name="source">
+
+                    <option
+                        value=""
+                        {% if not lead or not lead.source %}
+                            selected
+                        {% endif %}
+                    >
+                        Select Source
+                    </option>
+
+                    <option
+                        value="Website"
+                        {% if lead and lead.source == "Website" %}
+                            selected
+                        {% endif %}
+                    >
+                        Website
+                    </option>
+
+                    <option
+                        value="Referral"
+                        {% if lead and lead.source == "Referral" %}
+                            selected
+                        {% endif %}
+                    >
+                        Referral
+                    </option>
+
+                    <option
+                        value="Social Media"
+                        {% if lead and lead.source == "Social Media" %}
+                            selected
+                        {% endif %}
+                    >
+                        Social Media
+                    </option>
+
+                    <option
+                        value="Advertisement"
+                        {% if lead and lead.source == "Advertisement" %}
+                            selected
+                        {% endif %}
+                    >
+                        Advertisement
+                    </option>
+
+                    <option
+                        value="Email Campaign"
+                        {% if lead and lead.source == "Email Campaign" %}
+                            selected
+                        {% endif %}
+                    >
+                        Email Campaign
+                    </option>
+
+                    <option
+                        value="Other"
+                        {% if lead and lead.source == "Other" %}
+                            selected
+                        {% endif %}
+                    >
+                        Other
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- STATUS -->
+
+            <div class="form-group">
+
+                <label for="status">
+                    Status <span class="required">*</span>
+                </label>
+
+                <select id="status" name="status" required>
+
+                    {% set current_status = lead.status if lead else 'New' %}
+
+                    <option
+                        value="New"
+                        {% if current_status == "New" %}selected{% endif %}
+                    >
+                        New
+                    </option>
+
+                    <option
+                        value="Contacted"
+                        {% if current_status == "Contacted" %}selected{% endif %}
+                    >
+                        Contacted
+                    </option>
+
+                    <option
+                        value="Qualified"
+                        {% if current_status == "Qualified" %}selected{% endif %}
+                    >
+                        Qualified
+                    </option>
+
+                    <option
+                        value="Unqualified"
+                        {% if current_status == "Unqualified" %}selected{% endif %}
+                    >
+                        Unqualified
+                    </option>
+
+                    <option
+                        value="Converted"
+                        {% if current_status == "Converted" %}selected{% endif %}
+                    >
+                        Converted
+                    </option>
+
+                    <option
+                        value="Lost"
+                        {% if current_status == "Lost" %}selected{% endif %}
+                    >
+                        Lost
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- PRIORITY -->
+
+            <div class="form-group">
+
+                <label for="priority">
+                    Priority <span class="required">*</span>
+                </label>
+
+                {% set current_priority = lead.priority if lead else 'Medium' %}
+
+                <select id="priority" name="priority" required>
+
+                    <option
+                        value="Low"
+                        {% if current_priority == "Low" %}selected{% endif %}
+                    >
+                        Low
+                    </option>
+
+                    <option
+                        value="Medium"
+                        {% if current_priority == "Medium" %}selected{% endif %}
+                    >
+                        Medium
+                    </option>
+
+                    <option
+                        value="High"
+                        {% if current_priority == "High" %}selected{% endif %}
+                    >
+                        High
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- NOTES -->
+
+            <div class="form-group">
+
+                <label for="notes">
+                    Notes
+                </label>
+
+                <textarea
+                    id="notes"
+                    name="notes"
+                    rows="5"
+                    maxlength="500"
+                    placeholder="Enter additional notes..."
+                >{{ lead.notes if lead else '' }}</textarea>
+
+            </div>
+
+
+            <!-- ACTIONS -->
+
+            <div class="form-actions">
+
+                <a
+                    href="{{ url_for('leads') }}"
+                    class="btn btn-secondary"
+                >
+                    Cancel
+                </a>
+
+                {% if edit_mode %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Update Lead
+                    </button>
+
+                {% else %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Create Lead
+                    </button>
+
+                {% endif %}
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<style>
+
+/* PAGE */
+
+.form-page {
+
+    max-width: 900px;
+
+    margin: 0 auto;
+
+}
+
+
+/* HEADER */
+
+.page-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 25px;
+
+}
+
+.page-header h1 {
+
+    margin-bottom: 5px;
+
+}
+
+.page-header p {
+
+    color: #666;
+
+}
+
+
+/* CARD */
+
+.form-card {
+
+    background: white;
+
+    padding: 30px;
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.08);
+
+}
+
+
+/* FORM */
+
+.form-group {
+
+    margin-bottom: 20px;
+
+}
+
+.form-group label {
+
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-weight: 600;
+
+}
+
+.required {
+
+    color: #dc2626;
+
+}
+
+
+/* INPUTS */
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+
+    width: 100%;
+
+    padding: 10px 12px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 6px;
+
+    font-size: 14px;
+
+    box-sizing: border-box;
+
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+
+    outline: none;
+
+    border-color: #2563eb;
+
+}
+
+.form-group textarea {
+
+    resize: vertical;
+
+}
+
+
+/* HELP TEXT */
+
+.form-group small {
+
+    display: block;
+
+    margin-top: 5px;
+
+    color: #777;
+
+    font-size: 12px;
+
+}
+
+
+/* ACTIONS */
+
+.form-actions {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    margin-top: 25px;
+
+}
+
+
+/* BUTTONS */
+
+.btn {
+
+    display: inline-block;
+
+    padding: 9px 15px;
+
+    border: none;
+
+    border-radius: 6px;
+
+    text-decoration: none;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+}
+
+.btn-primary {
+
+    background: #2563eb;
+
+    color: white;
+
+}
+
+.btn-primary:hover {
+
+    background: #1d4ed8;
+
+}
+
+.btn-secondary {
+
+    background: #6b7280;
+
+    color: white;
+
+}
+
+.btn-secondary:hover {
+
+    background: #4b5563;
+
+}
+
+</style>
+
+
+<script>
+
+document.getElementById("leadForm").addEventListener("submit", function(event) {
+
+    const email = document.getElementById("email").value.trim();
+
+    const phone = document.getElementById("phone").value.trim();
+
+    const emailPattern =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    const phonePattern =
+        /^[0-9]{10,15}$/;
+
+
+    if (!emailPattern.test(email)) {
+
+        alert("Please enter a valid email address.");
+
+        event.preventDefault();
+
+        return;
+
+    }
+
+
+    if (!phonePattern.test(phone)) {
+
+        alert("Phone number must contain 10 to 15 digits.");
+
+        event.preventDefault();
+
+        return;
+
+    }
+
+});
+
+</script>
+
+{% endblock %}

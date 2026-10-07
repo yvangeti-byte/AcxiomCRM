@@ -1,0 +1,588 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <div>
+        <h1>Opportunities</h1>
+        <p>Manage sales opportunities and pipeline.</p>
+    </div>
+
+    <a href="{{ url_for('create_opportunity') }}" class="btn btn-primary">
+        + Add Opportunity
+    </a>
+
+</div>
+
+
+<!-- ================= SEARCH ================= -->
+
+<div class="search-card">
+
+    <form method="GET">
+
+        <input
+            type="text"
+            name="search"
+            value="{{ search }}"
+            placeholder="Search by opportunity name..."
+        >
+
+        <button type="submit" class="btn btn-primary">
+            Search
+        </button>
+
+        {% if search %}
+
+        <a href="{{ url_for('opportunities') }}" class="btn btn-secondary">
+            Clear
+        </a>
+
+        {% endif %}
+
+    </form>
+
+</div>
+
+
+<!-- ================= OPPORTUNITY TABLE ================= -->
+
+<div class="card">
+
+    {% if opportunities %}
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>ID</th>
+                    <th>Opportunity</th>
+                    <th>Customer</th>
+                    <th>Stage</th>
+                    <th>Amount</th>
+                    <th>Probability</th>
+                    <th>Weighted Pipeline</th>
+                    <th>Expected Close</th>
+                    <th>Source</th>
+                    <th>Notes</th>
+                    <th>Actions</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for opportunity in opportunities %}
+
+                <tr>
+
+                    <td>
+                        {{ opportunity.id }}
+                    </td>
+
+
+                    <td>
+                        <strong>
+                            {{ opportunity.name }}
+                        </strong>
+                    </td>
+
+
+                    <td>
+
+                        {% if opportunity.customer %}
+
+                            {{ opportunity.customer.name }}
+
+                        {% else %}
+
+                            -
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <td>
+
+                        {% if opportunity.stage == "Qualification" %}
+
+                            <span class="stage stage-qualification">
+                                Qualification
+                            </span>
+
+                        {% elif opportunity.stage == "Proposal" %}
+
+                            <span class="stage stage-proposal">
+                                Proposal
+                            </span>
+
+                        {% elif opportunity.stage == "Negotiation" %}
+
+                            <span class="stage stage-negotiation">
+                                Negotiation
+                            </span>
+
+                        {% elif opportunity.stage == "Won" %}
+
+                            <span class="stage stage-won">
+                                Won
+                            </span>
+
+                        {% elif opportunity.stage == "Lost" %}
+
+                            <span class="stage stage-lost">
+                                Lost
+                            </span>
+
+                        {% else %}
+
+                            <span class="stage">
+                                {{ opportunity.stage }}
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <td>
+                        ₹{{ "%.2f"|format(opportunity.amount) }}
+                    </td>
+
+
+                    <td>
+                        {{ "%.0f"|format(opportunity.probability) }}%
+                    </td>
+
+
+                    <td>
+
+                        ₹{{
+                            "%.2f"|format(
+                                opportunity.amount *
+                                opportunity.probability / 100
+                            )
+                        }}
+
+                    </td>
+
+
+                    <td>
+
+                        {% if opportunity.expected_close %}
+
+                            {{ opportunity.expected_close.strftime("%d-%m-%Y") }}
+
+                        {% else %}
+
+                            -
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <td>
+                        {{ opportunity.source or "-" }}
+                    </td>
+
+
+                    <td>
+                        {{ opportunity.notes or "-" }}
+                    </td>
+
+
+                    <td>
+
+                        <!-- EDIT -->
+
+                        <a
+                            href="{{ url_for('edit_opportunity', id=opportunity.id) }}"
+                            class="btn btn-edit"
+                        >
+                            Edit
+                        </a>
+
+
+                        <!-- DELETE -->
+
+                        <form
+                            method="POST"
+                            action="{{ url_for('delete_opportunity', id=opportunity.id) }}"
+                            style="display:inline;"
+                        >
+
+                            <button
+                                type="submit"
+                                class="btn btn-danger"
+                                onclick="return confirm('Delete this opportunity?');"
+                            >
+                                Delete
+                            </button>
+
+                        </form>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    {% else %}
+
+    <!-- ================= EMPTY STATE ================= -->
+
+    <div class="empty-state">
+
+        <h3>No opportunities found</h3>
+
+        {% if search %}
+
+        <p>
+            No opportunities matched "{{ search }}".
+        </p>
+
+        <a
+            href="{{ url_for('opportunities') }}"
+            class="btn btn-secondary"
+        >
+            Clear Search
+        </a>
+
+        {% else %}
+
+        <p>
+            No opportunities have been added yet.
+        </p>
+
+        <a
+            href="{{ url_for('create_opportunity') }}"
+            class="btn btn-primary"
+        >
+            + Add Opportunity
+        </a>
+
+        {% endif %}
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+
+<style>
+
+/* ================= PAGE HEADER ================= */
+
+.page-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 25px;
+
+}
+
+.page-header h1 {
+
+    margin-bottom: 5px;
+
+}
+
+.page-header p {
+
+    color: #666;
+
+}
+
+
+/* ================= SEARCH ================= */
+
+.search-card {
+
+    background: white;
+
+    padding: 20px;
+
+    border-radius: 10px;
+
+    margin-bottom: 20px;
+
+    box-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.08);
+
+}
+
+.search-card form {
+
+    display: flex;
+
+    gap: 10px;
+
+}
+
+.search-card input {
+
+    flex: 1;
+
+    padding: 10px 12px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 6px;
+
+    font-size: 14px;
+
+}
+
+.search-card input:focus {
+
+    outline: none;
+
+    border-color: #2563eb;
+
+}
+
+
+/* ================= CARD ================= */
+
+.card {
+
+    background: white;
+
+    padding: 25px;
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.08);
+
+}
+
+
+/* ================= TABLE ================= */
+
+.table-container {
+
+    overflow-x: auto;
+
+}
+
+table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+}
+
+th,
+td {
+
+    padding: 13px;
+
+    border-bottom: 1px solid #eee;
+
+    text-align: left;
+
+    vertical-align: middle;
+
+}
+
+th {
+
+    background: #f7f7f7;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+
+}
+
+
+/* ================= BUTTONS ================= */
+
+.btn {
+
+    display: inline-block;
+
+    padding: 8px 13px;
+
+    border: none;
+
+    border-radius: 6px;
+
+    text-decoration: none;
+
+    cursor: pointer;
+
+    font-size: 13px;
+
+}
+
+.btn-primary {
+
+    background: #2563eb;
+
+    color: white;
+
+}
+
+.btn-primary:hover {
+
+    background: #1d4ed8;
+
+}
+
+.btn-secondary {
+
+    background: #6b7280;
+
+    color: white;
+
+}
+
+.btn-secondary:hover {
+
+    background: #4b5563;
+
+}
+
+.btn-edit {
+
+    background: #f59e0b;
+
+    color: white;
+
+    margin-right: 5px;
+
+}
+
+.btn-edit:hover {
+
+    background: #d97706;
+
+}
+
+.btn-danger {
+
+    background: #dc2626;
+
+    color: white;
+
+}
+
+.btn-danger:hover {
+
+    background: #b91c1c;
+
+}
+
+
+/* ================= STAGES ================= */
+
+.stage {
+
+    display: inline-block;
+
+    padding: 5px 9px;
+
+    border-radius: 12px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    background: #e5e7eb;
+
+    color: #374151;
+
+}
+
+.stage-qualification {
+
+    background: #dbeafe;
+
+    color: #1e40af;
+
+}
+
+.stage-proposal {
+
+    background: #fef3c7;
+
+    color: #92400e;
+
+}
+
+.stage-negotiation {
+
+    background: #ede9fe;
+
+    color: #5b21b6;
+
+}
+
+.stage-won {
+
+    background: #dcfce7;
+
+    color: #166534;
+
+}
+
+.stage-lost {
+
+    background: #fee2e2;
+
+    color: #991b1b;
+
+}
+
+
+/* ================= EMPTY STATE ================= */
+
+.empty-state {
+
+    text-align: center;
+
+    padding: 50px 20px;
+
+}
+
+.empty-state h3 {
+
+    margin-bottom: 10px;
+
+}
+
+.empty-state p {
+
+    color: #777;
+
+    margin-bottom: 20px;
+
+}
+
+</style>
+
+{% endblock %}

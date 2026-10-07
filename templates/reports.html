@@ -1,0 +1,984 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - AcxiomCRM{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1>Reports</h1>
+        <p>View CRM performance, pipeline, conversion, and activity reports.</p>
+    </div>
+</div>
+
+
+<!-- Report Summary Cards -->
+
+<div class="report-cards">
+
+    <div class="report-card">
+        <div class="card-title">Customers</div>
+        <div class="card-value">{{ customer_count }}</div>
+        <div class="card-description">
+            Total customers
+        </div>
+    </div>
+
+
+    <div class="report-card">
+        <div class="card-title">Leads</div>
+        <div class="card-value">{{ lead_count }}</div>
+        <div class="card-description">
+            Total leads
+        </div>
+    </div>
+
+
+    <div class="report-card">
+        <div class="card-title">Opportunities</div>
+        <div class="card-value">{{ opportunity_count }}</div>
+        <div class="card-description">
+            Total opportunities
+        </div>
+    </div>
+
+
+    <div class="report-card">
+        <div class="card-title">Follow-Ups</div>
+        <div class="card-value">{{ followup_count }}</div>
+        <div class="card-description">
+            Total follow-ups
+        </div>
+    </div>
+
+
+    <div class="report-card">
+        <div class="card-title">Pipeline Value</div>
+        <div class="card-value">
+            ₹{{ "%.2f"|format(pipeline_value) }}
+        </div>
+        <div class="card-description">
+            Total opportunity value
+        </div>
+    </div>
+
+
+    <div class="report-card">
+        <div class="card-title">Weighted Pipeline</div>
+        <div class="card-value">
+            ₹{{ "%.2f"|format(weighted_pipeline) }}
+        </div>
+        <div class="card-description">
+            Amount × probability
+        </div>
+    </div>
+
+</div>
+
+
+<!-- Report Filters -->
+
+<div class="report-section">
+
+    <div class="section-header">
+        <div>
+            <h2>Report Filters</h2>
+            <p>Filter report data by relevant CRM criteria.</p>
+        </div>
+    </div>
+
+
+    <form method="GET" action="{{ url_for('reports') }}" class="filter-form">
+
+        <div class="filter-group">
+
+            <label for="report_type">
+                Report Type
+            </label>
+
+            <select name="report_type" id="report_type">
+
+                <option value="overview"
+                    {% if report_type == 'overview' %}
+                        selected
+                    {% endif %}>
+                    Overview
+                </option>
+
+                <option value="customers"
+                    {% if report_type == 'customers' %}
+                        selected
+                    {% endif %}>
+                    Customer Report
+                </option>
+
+                <option value="leads"
+                    {% if report_type == 'leads' %}
+                        selected
+                    {% endif %}>
+                    Lead Report
+                </option>
+
+                <option value="followups"
+                    {% if report_type == 'followups' %}
+                        selected
+                    {% endif %}>
+                    Follow-Up Report
+                </option>
+
+                <option value="opportunities"
+                    {% if report_type == 'opportunities' %}
+                        selected
+                    {% endif %}>
+                    Opportunity Report
+                </option>
+
+                <option value="pipeline"
+                    {% if report_type == 'pipeline' %}
+                        selected
+                    {% endif %}>
+                    Pipeline Report
+                </option>
+
+                <option value="conversion"
+                    {% if report_type == 'conversion' %}
+                        selected
+                    {% endif %}>
+                    Conversion Report
+                </option>
+
+                <option value="user_activity"
+                    {% if report_type == 'user_activity' %}
+                        selected
+                    {% endif %}>
+                    User Activity Report
+                </option>
+
+                <option value="audit"
+                    {% if report_type == 'audit' %}
+                        selected
+                    {% endif %}>
+                    Audit Report
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="filter-group">
+
+            <label for="search">
+                Search
+            </label>
+
+            <input
+                type="text"
+                name="search"
+                id="search"
+                value="{{ search }}"
+                placeholder="Search report data..."
+            >
+
+        </div>
+
+
+        <div class="filter-group">
+
+            <label for="status">
+                Status
+            </label>
+
+            <select name="status" id="status">
+
+                <option value="">All Statuses</option>
+
+                <option value="New"
+                    {% if status == 'New' %}
+                        selected
+                    {% endif %}>
+                    New
+                </option>
+
+                <option value="Qualified"
+                    {% if status == 'Qualified' %}
+                        selected
+                    {% endif %}>
+                    Qualified
+                </option>
+
+                <option value="Converted"
+                    {% if status == 'Converted' %}
+                        selected
+                    {% endif %}>
+                    Converted
+                </option>
+
+                <option value="Lost"
+                    {% if status == 'Lost' %}
+                        selected
+                    {% endif %}>
+                    Lost
+                </option>
+
+                <option value="Won"
+                    {% if status == 'Won' %}
+                        selected
+                    {% endif %}>
+                    Won
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="filter-actions">
+
+            <button type="submit" class="btn btn-primary">
+                Apply Filters
+            </button>
+
+            <a
+                href="{{ url_for('reports') }}"
+                class="btn btn-secondary">
+                Reset
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<!-- Report Data -->
+
+<div class="report-section">
+
+    <div class="section-header">
+
+        <div>
+            <h2>
+                {{ report_title }}
+            </h2>
+
+            <p>
+                {{ report_description }}
+            </p>
+        </div>
+
+    </div>
+
+
+    {% if report_type == 'customers' %}
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Assigned To</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for customer in report_data %}
+
+                    <tr>
+                        <td>{{ customer.id }}</td>
+                        <td>{{ customer.name }}</td>
+                        <td>{{ customer.email }}</td>
+                        <td>{{ customer.phone }}</td>
+                        <td>{{ customer.status }}</td>
+
+                        <td>
+                            {% if customer.assigned_to %}
+                                {{ customer.assigned_to.name or customer.assigned_to.email }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            No customer data found.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+    {% elif report_type == 'leads' %}
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Source</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Owner</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for lead in report_data %}
+
+                    <tr>
+                        <td>{{ lead.id }}</td>
+                        <td>{{ lead.name }}</td>
+                        <td>{{ lead.email }}</td>
+                        <td>{{ lead.source or '-' }}</td>
+                        <td>{{ lead.status }}</td>
+                        <td>{{ lead.priority }}</td>
+
+                        <td>
+                            {% if lead.owner %}
+                                {{ lead.owner.name or lead.owner.email }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            No lead data found.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+    {% elif report_type == 'followups' %}
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Subject</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Customer</th>
+                        <th>Lead</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for followup in report_data %}
+
+                    <tr>
+                        <td>{{ followup.id }}</td>
+
+                        <td>
+                            {{ followup.date.strftime('%Y-%m-%d')
+                               if followup.date else '-' }}
+                        </td>
+
+                        <td>{{ followup.subject }}</td>
+                        <td>{{ followup.type }}</td>
+                        <td>{{ followup.status }}</td>
+
+                        <td>
+                            {% if followup.customer %}
+                                {{ followup.customer.name }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if followup.lead %}
+                                {{ followup.lead.name }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            No follow-up data found.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+    {% elif report_type in ['opportunities', 'pipeline'] %}
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Opportunity</th>
+                        <th>Customer</th>
+                        <th>Stage</th>
+                        <th>Amount</th>
+                        <th>Probability</th>
+                        <th>Weighted Value</th>
+                        <th>Expected Close</th>
+                        <th>Owner</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for opportunity in report_data %}
+
+                    <tr>
+
+                        <td>{{ opportunity.id }}</td>
+
+                        <td>{{ opportunity.name }}</td>
+
+                        <td>
+                            {% if opportunity.customer %}
+                                {{ opportunity.customer.name }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+
+                        <td>{{ opportunity.stage }}</td>
+
+                        <td>
+                            ₹{{ "%.2f"|format(opportunity.amount or 0) }}
+                        </td>
+
+                        <td>
+                            {{ opportunity.probability or 0 }}%
+                        </td>
+
+                        <td>
+                            ₹{{ "%.2f"|format(
+                                (opportunity.amount or 0)
+                                *
+                                (opportunity.probability or 0)
+                                / 100
+                            ) }}
+                        </td>
+
+                        <td>
+                            {% if opportunity.expected_close %}
+                                {{ opportunity.expected_close.strftime('%Y-%m-%d') }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if opportunity.owner %}
+                                {{ opportunity.owner.name or opportunity.owner.email }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="9" class="empty-state">
+                            No opportunity data found.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+    {% elif report_type == 'conversion' %}
+
+        <div class="conversion-grid">
+
+            <div class="conversion-item">
+                <span>Total Leads</span>
+                <strong>{{ conversion_total }}</strong>
+            </div>
+
+            <div class="conversion-item">
+                <span>Converted Leads</span>
+                <strong>{{ conversion_converted }}</strong>
+            </div>
+
+            <div class="conversion-item">
+                <span>Conversion Rate</span>
+                <strong>{{ "%.2f"|format(conversion_rate) }}%</strong>
+            </div>
+
+        </div>
+
+
+    {% elif report_type == 'user_activity' %}
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Activity Count</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for item in report_data %}
+
+                    <tr>
+                        <td>{{ item.user }}</td>
+                        <td>{{ item.count }}</td>
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="2" class="empty-state">
+                            No user activity data found.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+    {% elif report_type == 'audit' %}
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Module</th>
+                        <th>Record</th>
+                        <th>Result</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for audit in report_data %}
+
+                    <tr>
+
+                        <td>{{ audit.id }}</td>
+
+                        <td>
+                            {% if audit.user %}
+                                {{ audit.user.name or audit.user.email }}
+                            {% else %}
+                                System
+                            {% endif %}
+                        </td>
+
+                        <td>{{ audit.action }}</td>
+                        <td>{{ audit.module }}</td>
+                        <td>{{ audit.record_id or '-' }}</td>
+                        <td>{{ audit.result }}</td>
+
+                        <td>
+                            {{ audit.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+                               if audit.timestamp else '-' }}
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            No audit data found.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+    {% else %}
+
+        <div class="overview-message">
+
+            <h3>CRM Reporting Overview</h3>
+
+            <p>
+                Select a report type above to view detailed CRM data.
+            </p>
+
+            <div class="overview-list">
+
+                <div>✓ Customer Report</div>
+                <div>✓ Lead Report</div>
+                <div>✓ Follow-Up Report</div>
+                <div>✓ Opportunity Report</div>
+                <div>✓ Pipeline Report</div>
+                <div>✓ Conversion Report</div>
+                <div>✓ User Activity Report</div>
+                <div>✓ Audit Report</div>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+<style>
+
+.page-header {
+    margin-bottom: 25px;
+}
+
+.page-header h1 {
+    margin: 0 0 6px;
+}
+
+.page-header p {
+    margin: 0;
+    color: #6b7280;
+}
+
+
+/* Summary Cards */
+
+.report-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 25px;
+}
+
+.report-card {
+    background: white;
+    padding: 22px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.card-title {
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.card-value {
+    font-size: 25px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.card-description {
+    margin-top: 5px;
+    color: #9ca3af;
+    font-size: 12px;
+}
+
+
+/* Sections */
+
+.report-section {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.section-header {
+    margin-bottom: 20px;
+}
+
+.section-header h2 {
+    margin: 0 0 5px;
+    font-size: 20px;
+}
+
+.section-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+
+/* Filters */
+
+.filter-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 15px;
+    align-items: end;
+}
+
+.filter-group label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.filter-group input,
+.filter-group select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    background: white;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 8px;
+}
+
+
+/* Buttons */
+
+.btn {
+    display: inline-block;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 7px;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: #2563eb;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #1d4ed8;
+}
+
+.btn-secondary {
+    background: #6b7280;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+}
+
+
+/* Tables */
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background: #f3f4f6;
+}
+
+th,
+td {
+    padding: 13px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+th {
+    font-size: 13px;
+    color: #374151;
+}
+
+td {
+    font-size: 14px;
+    color: #4b5563;
+}
+
+tbody tr:hover {
+    background: #f9fafb;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 35px;
+    color: #6b7280;
+}
+
+
+/* Conversion */
+
+.conversion-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.conversion-item {
+    padding: 25px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.conversion-item span {
+    display: block;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.conversion-item strong {
+    font-size: 28px;
+    color: #111827;
+}
+
+
+/* Overview */
+
+.overview-message {
+    text-align: center;
+    padding: 30px;
+}
+
+.overview-message h3 {
+    margin-bottom: 8px;
+}
+
+.overview-message p {
+    color: #6b7280;
+}
+
+.overview-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    max-width: 600px;
+    margin: 25px auto 0;
+    text-align: left;
+}
+
+.overview-list div {
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 7px;
+}
+
+
+/* Responsive */
+
+@media (max-width: 900px) {
+
+    .report-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .filter-form {
+        grid-template-columns: 1fr 1fr;
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .report-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-form {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-actions {
+        flex-direction: column;
+    }
+
+    .conversion-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .overview-list {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+</style>
+
+{% endblock %}

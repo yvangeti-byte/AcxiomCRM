@@ -1,0 +1,815 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="form-page">
+
+    <div class="page-header">
+
+        <div>
+            {% if edit_mode %}
+                <h1>Edit Opportunity</h1>
+                <p>Update opportunity and pipeline information.</p>
+            {% else %}
+                <h1>Add Opportunity</h1>
+                <p>Create a new sales opportunity.</p>
+            {% endif %}
+        </div>
+
+        <a href="{{ url_for('opportunities') }}" class="btn btn-secondary">
+            Back to Opportunities
+        </a>
+
+    </div>
+
+
+    <div class="form-card">
+
+        <form method="POST" id="opportunityForm">
+
+            <!-- OPPORTUNITY NAME -->
+
+            <div class="form-group">
+
+                <label for="name">
+                    Opportunity Name <span class="required">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value="{{ opportunity.name if opportunity else '' }}"
+                    required
+                    maxlength="150"
+                    placeholder="Enter opportunity name"
+                >
+
+            </div>
+
+
+            <!-- CUSTOMER -->
+
+            <div class="form-group">
+
+                <label for="customer_id">
+                    Customer <span class="required">*</span>
+                </label>
+
+                <select
+                    id="customer_id"
+                    name="customer_id"
+                    required
+                >
+
+                    <option value="">
+                        Select Customer
+                    </option>
+
+                    {% for customer in customers %}
+
+                    <option
+                        value="{{ customer.id }}"
+                        {% if opportunity and opportunity.customer_id == customer.id %}
+                            selected
+                        {% endif %}
+                    >
+
+                        {{ customer.name }} - {{ customer.email }}
+
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+                {% if not customers %}
+
+                <small class="warning-text">
+                    No customers available. Create a customer first.
+                </small>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- STAGE -->
+
+            <div class="form-group">
+
+                <label for="stage">
+                    Stage <span class="required">*</span>
+                </label>
+
+                {% set current_stage = opportunity.stage if opportunity else 'Qualification' %}
+
+                <select
+                    id="stage"
+                    name="stage"
+                    required
+                >
+
+                    <option
+                        value="Qualification"
+                        {% if current_stage == "Qualification" %}
+                            selected
+                        {% endif %}
+                    >
+                        Qualification
+                    </option>
+
+                    <option
+                        value="Proposal"
+                        {% if current_stage == "Proposal" %}
+                            selected
+                        {% endif %}
+                    >
+                        Proposal
+                    </option>
+
+                    <option
+                        value="Negotiation"
+                        {% if current_stage == "Negotiation" %}
+                            selected
+                        {% endif %}
+                    >
+                        Negotiation
+                    </option>
+
+                    <option
+                        value="Won"
+                        {% if current_stage == "Won" %}
+                            selected
+                        {% endif %}
+                    >
+                        Won
+                    </option>
+
+                    <option
+                        value="Lost"
+                        {% if current_stage == "Lost" %}
+                            selected
+                        {% endif %}
+                    >
+                        Lost
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- AMOUNT -->
+
+            <div class="form-group">
+
+                <label for="amount">
+                    Amount <span class="required">*</span>
+                </label>
+
+                <input
+                    type="number"
+                    id="amount"
+                    name="amount"
+                    value="{{ opportunity.amount if opportunity else '' }}"
+                    min="0.01"
+                    step="0.01"
+                    required
+                    placeholder="Enter amount"
+                >
+
+                <small>
+                    Amount must be greater than 0.
+                </small>
+
+            </div>
+
+
+            <!-- PROBABILITY -->
+
+            <div class="form-group">
+
+                <label for="probability">
+                    Probability (%) <span class="required">*</span>
+                </label>
+
+                <input
+                    type="number"
+                    id="probability"
+                    name="probability"
+                    value="{{ opportunity.probability if opportunity else '' }}"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    required
+                    placeholder="0 - 100"
+                >
+
+                <small>
+                    Probability must be between 0 and 100.
+                </small>
+
+            </div>
+
+
+            <!-- EXPECTED CLOSE -->
+
+            <div class="form-group">
+
+                <label for="expected_close">
+                    Expected Close Date <span class="required">*</span>
+                </label>
+
+                <input
+                    type="date"
+                    id="expected_close"
+                    name="expected_close"
+                    value="{% if opportunity and opportunity.expected_close %}{{ opportunity.expected_close.isoformat() }}{% endif %}"
+                    required
+                >
+
+                <small>
+                    Active opportunities cannot have a past expected close date.
+                </small>
+
+            </div>
+
+
+            <!-- SOURCE -->
+
+            <div class="form-group">
+
+                <label for="source">
+                    Source
+                </label>
+
+                <select
+                    id="source"
+                    name="source"
+                >
+
+                    <option
+                        value=""
+                        {% if not opportunity or not opportunity.source %}
+                            selected
+                        {% endif %}
+                    >
+                        Select Source
+                    </option>
+
+                    <option
+                        value="Website"
+                        {% if opportunity and opportunity.source == "Website" %}
+                            selected
+                        {% endif %}
+                    >
+                        Website
+                    </option>
+
+                    <option
+                        value="Referral"
+                        {% if opportunity and opportunity.source == "Referral" %}
+                            selected
+                        {% endif %}
+                    >
+                        Referral
+                    </option>
+
+                    <option
+                        value="Sales Team"
+                        {% if opportunity and opportunity.source == "Sales Team" %}
+                            selected
+                        {% endif %}
+                    >
+                        Sales Team
+                    </option>
+
+                    <option
+                        value="Advertisement"
+                        {% if opportunity and opportunity.source == "Advertisement" %}
+                            selected
+                        {% endif %}
+                    >
+                        Advertisement
+                    </option>
+
+                    <option
+                        value="Partner"
+                        {% if opportunity and opportunity.source == "Partner" %}
+                            selected
+                        {% endif %}
+                    >
+                        Partner
+                    </option>
+
+                    <option
+                        value="Other"
+                        {% if opportunity and opportunity.source == "Other" %}
+                            selected
+                        {% endif %}
+                    >
+                        Other
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- NOTES -->
+
+            <div class="form-group">
+
+                <label for="notes">
+                    Notes
+                </label>
+
+                <textarea
+                    id="notes"
+                    name="notes"
+                    rows="5"
+                    maxlength="1000"
+                    placeholder="Enter additional notes..."
+                >{{ opportunity.notes if opportunity else '' }}</textarea>
+
+            </div>
+
+
+            <!-- WEIGHTED PIPELINE PREVIEW -->
+
+            <div class="pipeline-preview">
+
+                <div>
+                    <strong>Weighted Pipeline</strong>
+                    <span>
+                        Amount × Probability / 100
+                    </span>
+                </div>
+
+                <strong id="weightedPipeline">
+                    ₹0.00
+                </strong>
+
+            </div>
+
+
+            <!-- ACTIONS -->
+
+            <div class="form-actions">
+
+                <a
+                    href="{{ url_for('opportunities') }}"
+                    class="btn btn-secondary"
+                >
+                    Cancel
+                </a>
+
+                {% if edit_mode %}
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    Update Opportunity
+                </button>
+
+                {% else %}
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    Create Opportunity
+                </button>
+
+                {% endif %}
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<style>
+
+/* PAGE */
+
+.form-page {
+
+    max-width: 900px;
+
+    margin: 0 auto;
+
+}
+
+
+/* HEADER */
+
+.page-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 25px;
+
+}
+
+.page-header h1 {
+
+    margin-bottom: 5px;
+
+}
+
+.page-header p {
+
+    color: #666;
+
+}
+
+
+/* CARD */
+
+.form-card {
+
+    background: white;
+
+    padding: 30px;
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.08);
+
+}
+
+
+/* FORM */
+
+.form-group {
+
+    margin-bottom: 20px;
+
+}
+
+.form-group label {
+
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-weight: 600;
+
+}
+
+.required {
+
+    color: #dc2626;
+
+}
+
+
+/* INPUTS */
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+
+    width: 100%;
+
+    padding: 10px 12px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 6px;
+
+    font-size: 14px;
+
+    box-sizing: border-box;
+
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+
+    outline: none;
+
+    border-color: #2563eb;
+
+}
+
+.form-group textarea {
+
+    resize: vertical;
+
+}
+
+
+/* HELP TEXT */
+
+.form-group small {
+
+    display: block;
+
+    margin-top: 5px;
+
+    color: #777;
+
+    font-size: 12px;
+
+}
+
+.warning-text {
+
+    color: #b45309 !important;
+
+}
+
+
+/* PIPELINE PREVIEW */
+
+.pipeline-preview {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 15px;
+
+    margin-top: 10px;
+
+    margin-bottom: 25px;
+
+    border-radius: 8px;
+
+    background: #f3f4f6;
+
+}
+
+.pipeline-preview div {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 4px;
+
+}
+
+.pipeline-preview span {
+
+    font-size: 12px;
+
+    color: #777;
+
+}
+
+.pipeline-preview > strong {
+
+    font-size: 20px;
+
+}
+
+
+/* ACTIONS */
+
+.form-actions {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    margin-top: 25px;
+
+}
+
+
+/* BUTTONS */
+
+.btn {
+
+    display: inline-block;
+
+    padding: 9px 15px;
+
+    border: none;
+
+    border-radius: 6px;
+
+    text-decoration: none;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+}
+
+.btn-primary {
+
+    background: #2563eb;
+
+    color: white;
+
+}
+
+.btn-primary:hover {
+
+    background: #1d4ed8;
+
+}
+
+.btn-secondary {
+
+    background: #6b7280;
+
+    color: white;
+
+}
+
+.btn-secondary:hover {
+
+    background: #4b5563;
+
+}
+
+</style>
+
+
+<script>
+
+/* ============================================================
+   CLIENT-SIDE VALIDATION + WEIGHTED PIPELINE
+   ============================================================ */
+
+const form = document.getElementById("opportunityForm");
+
+const amountInput = document.getElementById("amount");
+
+const probabilityInput = document.getElementById("probability");
+
+const weightedPipeline =
+    document.getElementById("weightedPipeline");
+
+
+function updateWeightedPipeline() {
+
+    const amount =
+        parseFloat(amountInput.value) || 0;
+
+    const probability =
+        parseFloat(probabilityInput.value) || 0;
+
+    const weighted =
+        amount * probability / 100;
+
+    weightedPipeline.textContent =
+        "₹" + weighted.toFixed(2);
+
+}
+
+
+amountInput.addEventListener(
+    "input",
+    updateWeightedPipeline
+);
+
+
+probabilityInput.addEventListener(
+    "input",
+    updateWeightedPipeline
+);
+
+
+form.addEventListener(
+    "submit",
+    function(event) {
+
+        const amount =
+            parseFloat(amountInput.value);
+
+        const probability =
+            parseFloat(probabilityInput.value);
+
+        const customer =
+            document.getElementById("customer_id").value;
+
+        const expectedClose =
+            document.getElementById("expected_close").value;
+
+        const stage =
+            document.getElementById("stage").value;
+
+
+        if (!customer) {
+
+            alert(
+                "Please select a customer."
+            );
+
+            event.preventDefault();
+
+            return;
+
+        }
+
+
+        if (
+            isNaN(amount)
+            || amount <= 0
+        ) {
+
+            alert(
+                "Opportunity amount must be greater than 0."
+            );
+
+            event.preventDefault();
+
+            return;
+
+        }
+
+
+        if (
+            isNaN(probability)
+            || probability < 0
+            || probability > 100
+        ) {
+
+            alert(
+                "Probability must be between 0 and 100."
+            );
+
+            event.preventDefault();
+
+            return;
+
+        }
+
+
+        if (!expectedClose) {
+
+            alert(
+                "Please select an expected close date."
+            );
+
+            event.preventDefault();
+
+            return;
+
+        }
+
+
+        const selectedDate =
+            new Date(
+                expectedClose + "T00:00:00"
+            );
+
+        const today =
+            new Date();
+
+        today.setHours(
+            0,
+            0,
+            0,
+            0
+        );
+
+
+        if (
+            stage !== "Won"
+            && stage !== "Lost"
+            && selectedDate < today
+        ) {
+
+            alert(
+                "Expected close date cannot be in the past for an active opportunity."
+            );
+
+            event.preventDefault();
+
+            return;
+
+        }
+
+    }
+);
+
+
+/* Initial calculation */
+
+updateWeightedPipeline();
+
+</script>
+
+{% endblock %}

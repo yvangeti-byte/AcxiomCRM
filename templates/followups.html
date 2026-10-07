@@ -1,0 +1,782 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <div>
+        <h1>Follow-Ups</h1>
+        <p>Manage planned, completed, missed and cancelled follow-ups.</p>
+    </div>
+
+    <a
+        href="{{ url_for('create_followup') }}"
+        class="btn btn-primary"
+    >
+        + Add Follow-Up
+    </a>
+
+</div>
+
+
+<!-- ================= SEARCH & FILTER ================= -->
+
+<div class="search-card">
+
+    <form method="GET">
+
+        <input
+            type="text"
+            name="search"
+            value="{{ search }}"
+            placeholder="Search subject, type or status..."
+        >
+
+        <select name="status">
+
+            <option
+                value=""
+                {% if not status_filter %}
+                    selected
+                {% endif %}
+            >
+                All Statuses
+            </option>
+
+            <option
+                value="Planned"
+                {% if status_filter == "Planned" %}
+                    selected
+                {% endif %}
+            >
+                Planned
+            </option>
+
+            <option
+                value="Completed"
+                {% if status_filter == "Completed" %}
+                    selected
+                {% endif %}
+            >
+                Completed
+            </option>
+
+            <option
+                value="Missed"
+                {% if status_filter == "Missed" %}
+                    selected
+                {% endif %}
+            >
+                Missed
+            </option>
+
+            <option
+                value="Cancelled"
+                {% if status_filter == "Cancelled" %}
+                    selected
+                {% endif %}
+            >
+                Cancelled
+            </option>
+
+        </select>
+
+        <button
+            type="submit"
+            class="btn btn-primary"
+        >
+            Search
+        </button>
+
+        {% if search or status_filter %}
+
+        <a
+            href="{{ url_for('followups') }}"
+            class="btn btn-secondary"
+        >
+            Clear
+        </a>
+
+        {% endif %}
+
+    </form>
+
+</div>
+
+
+<!-- ================= FOLLOW-UP TABLE ================= -->
+
+<div class="card">
+
+    {% if followups %}
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>ID</th>
+
+                    <th>Date</th>
+
+                    <th>Subject</th>
+
+                    <th>Type</th>
+
+                    <th>Customer</th>
+
+                    <th>Lead</th>
+
+                    <th>Status</th>
+
+                    <th>Notes</th>
+
+                    <th>Actions</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for followup in followups %}
+
+                <tr>
+
+                    <td>
+                        {{ followup.id }}
+                    </td>
+
+
+                    <!-- DATE -->
+
+                    <td>
+
+                        {% if followup.date %}
+
+                            {{ followup.date.strftime("%d-%m-%Y") }}
+
+                        {% else %}
+
+                            -
+
+                        {% endif %}
+
+
+                        {% if followup.status == "Planned" and followup.date %}
+
+                            {% if followup.date < today %}
+
+                                <span class="date-badge overdue">
+                                    Overdue
+                                </span>
+
+                            {% elif followup.date == today %}
+
+                                <span class="date-badge today">
+                                    Today
+                                </span>
+
+                            {% else %}
+
+                                <span class="date-badge upcoming">
+                                    Upcoming
+                                </span>
+
+                            {% endif %}
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- SUBJECT -->
+
+                    <td>
+
+                        <strong>
+                            {{ followup.subject }}
+                        </strong>
+
+                    </td>
+
+
+                    <!-- TYPE -->
+
+                    <td>
+                        {{ followup.type }}
+                    </td>
+
+
+                    <!-- CUSTOMER -->
+
+                    <td>
+
+                        {% if followup.customer %}
+
+                            {{ followup.customer.name }}
+
+                        {% else %}
+
+                            -
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- LEAD -->
+
+                    <td>
+
+                        {% if followup.lead %}
+
+                            {{ followup.lead.name }}
+
+                        {% else %}
+
+                            -
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- STATUS -->
+
+                    <td>
+
+                        {% if followup.status == "Planned" %}
+
+                            <span class="status status-planned">
+                                Planned
+                            </span>
+
+                        {% elif followup.status == "Completed" %}
+
+                            <span class="status status-completed">
+                                Completed
+                            </span>
+
+                        {% elif followup.status == "Missed" %}
+
+                            <span class="status status-missed">
+                                Missed
+                            </span>
+
+                        {% elif followup.status == "Cancelled" %}
+
+                            <span class="status status-cancelled">
+                                Cancelled
+                            </span>
+
+                        {% else %}
+
+                            <span class="status">
+                                {{ followup.status }}
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- NOTES -->
+
+                    <td>
+                        {{ followup.notes or "-" }}
+                    </td>
+
+
+                    <!-- ACTIONS -->
+
+                    <td>
+
+                        <a
+                            href="{{ url_for('edit_followup', id=followup.id) }}"
+                            class="btn btn-edit"
+                        >
+                            Edit
+                        </a>
+
+
+                        <form
+                            method="POST"
+                            action="{{ url_for('delete_followup', id=followup.id) }}"
+                            style="display:inline;"
+                        >
+
+                            <button
+                                type="submit"
+                                class="btn btn-danger"
+                                onclick="return confirm('Delete this follow-up?');"
+                            >
+                                Delete
+                            </button>
+
+                        </form>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    {% else %}
+
+    <!-- ================= EMPTY STATE ================= -->
+
+    <div class="empty-state">
+
+        <h3>No follow-ups found</h3>
+
+        {% if search or status_filter %}
+
+            <p>
+                No follow-ups matched your search or filter.
+            </p>
+
+            <a
+                href="{{ url_for('followups') }}"
+                class="btn btn-secondary"
+            >
+                Clear Filters
+            </a>
+
+        {% else %}
+
+            <p>
+                No follow-ups have been created yet.
+            </p>
+
+            <a
+                href="{{ url_for('create_followup') }}"
+                class="btn btn-primary"
+            >
+                + Add Follow-Up
+            </a>
+
+        {% endif %}
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+
+<style>
+
+/* ============================================================
+   PAGE HEADER
+   ============================================================ */
+
+.page-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 25px;
+
+}
+
+.page-header h1 {
+
+    margin-bottom: 5px;
+
+}
+
+.page-header p {
+
+    color: #666;
+
+}
+
+
+/* ============================================================
+   SEARCH
+   ============================================================ */
+
+.search-card {
+
+    background: white;
+
+    padding: 20px;
+
+    border-radius: 10px;
+
+    margin-bottom: 20px;
+
+    box-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.08);
+
+}
+
+.search-card form {
+
+    display: flex;
+
+    gap: 10px;
+
+    align-items: center;
+
+}
+
+.search-card input {
+
+    flex: 1;
+
+    padding: 10px 12px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 6px;
+
+    font-size: 14px;
+
+}
+
+.search-card select {
+
+    padding: 10px 12px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 6px;
+
+    font-size: 14px;
+
+    min-width: 160px;
+
+}
+
+.search-card input:focus,
+.search-card select:focus {
+
+    outline: none;
+
+    border-color: #2563eb;
+
+}
+
+
+/* ============================================================
+   CARD
+   ============================================================ */
+
+.card {
+
+    background: white;
+
+    padding: 25px;
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.08);
+
+}
+
+
+/* ============================================================
+   TABLE
+   ============================================================ */
+
+.table-container {
+
+    overflow-x: auto;
+
+}
+
+table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+}
+
+th,
+td {
+
+    padding: 13px;
+
+    border-bottom: 1px solid #eee;
+
+    text-align: left;
+
+    vertical-align: middle;
+
+}
+
+th {
+
+    background: #f7f7f7;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+
+}
+
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+.btn {
+
+    display: inline-block;
+
+    padding: 8px 13px;
+
+    border: none;
+
+    border-radius: 6px;
+
+    text-decoration: none;
+
+    cursor: pointer;
+
+    font-size: 13px;
+
+}
+
+.btn-primary {
+
+    background: #2563eb;
+
+    color: white;
+
+}
+
+.btn-primary:hover {
+
+    background: #1d4ed8;
+
+}
+
+.btn-secondary {
+
+    background: #6b7280;
+
+    color: white;
+
+}
+
+.btn-secondary:hover {
+
+    background: #4b5563;
+
+}
+
+.btn-edit {
+
+    background: #f59e0b;
+
+    color: white;
+
+    margin-right: 5px;
+
+}
+
+.btn-edit:hover {
+
+    background: #d97706;
+
+}
+
+.btn-danger {
+
+    background: #dc2626;
+
+    color: white;
+
+}
+
+.btn-danger:hover {
+
+    background: #b91c1c;
+
+}
+
+
+/* ============================================================
+   STATUS
+   ============================================================ */
+
+.status {
+
+    display: inline-block;
+
+    padding: 5px 9px;
+
+    border-radius: 12px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    background: #e5e7eb;
+
+    color: #374151;
+
+}
+
+.status-planned {
+
+    background: #dbeafe;
+
+    color: #1e40af;
+
+}
+
+.status-completed {
+
+    background: #dcfce7;
+
+    color: #166534;
+
+}
+
+.status-missed {
+
+    background: #fee2e2;
+
+    color: #991b1b;
+
+}
+
+.status-cancelled {
+
+    background: #e5e7eb;
+
+    color: #374151;
+
+}
+
+
+/* ============================================================
+   DATE BADGES
+   ============================================================ */
+
+.date-badge {
+
+    display: inline-block;
+
+    margin-left: 5px;
+
+    padding: 3px 7px;
+
+    border-radius: 10px;
+
+    font-size: 10px;
+
+    font-weight: 600;
+
+}
+
+.overdue {
+
+    background: #fee2e2;
+
+    color: #991b1b;
+
+}
+
+.today {
+
+    background: #fef3c7;
+
+    color: #92400e;
+
+}
+
+.upcoming {
+
+    background: #dcfce7;
+
+    color: #166534;
+
+}
+
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+
+.empty-state {
+
+    text-align: center;
+
+    padding: 50px 20px;
+
+}
+
+.empty-state h3 {
+
+    margin-bottom: 10px;
+
+}
+
+.empty-state p {
+
+    color: #777;
+
+    margin-bottom: 20px;
+
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 800px) {
+
+    .page-header {
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 15px;
+
+    }
+
+    .search-card form {
+
+        flex-direction: column;
+
+        align-items: stretch;
+
+    }
+
+    .search-card input,
+    .search-card select {
+
+        width: 100%;
+
+        box-sizing: border-box;
+
+    }
+
+}
+
+</style>
+
+{% endblock %}

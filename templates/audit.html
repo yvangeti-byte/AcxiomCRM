@@ -1,0 +1,512 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div>
+            <h1>Audit Logs</h1>
+            <p>Track authentication, CRM actions, and system activities.</p>
+        </div>
+
+        <a href="{{ url_for('dashboard') }}" class="btn">
+            ← Dashboard
+        </a>
+    </div>
+
+
+    <!-- SEARCH -->
+    <div class="card">
+
+        <form method="GET"
+              action="{{ url_for('audit_logs') }}"
+              class="search-form">
+
+            <input
+                type="text"
+                name="search"
+                value="{{ search }}"
+                placeholder="Search by user, action, or module..."
+            >
+
+            <button type="submit" class="btn">
+                Search
+            </button>
+
+            {% if search %}
+                <a
+                    href="{{ url_for('audit_logs') }}"
+                    class="btn secondary"
+                >
+                    Clear
+                </a>
+            {% endif %}
+
+        </form>
+
+    </div>
+
+
+    <!-- AUDIT TABLE -->
+    <div class="card">
+
+        <div class="table-header">
+            <div>
+                <h2>System Activity</h2>
+                <p>
+                    {{ logs|length }} audit record(s) found
+                </p>
+            </div>
+        </div>
+
+
+        {% if logs %}
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Timestamp</th>
+                        <th>Action</th>
+                        <th>Module</th>
+                        <th>Record ID</th>
+                        <th>Result</th>
+                        <th>Details</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for log in logs %}
+
+                    <tr>
+
+                        <!-- ID -->
+                        <td>
+                            {{ log.id }}
+                        </td>
+
+
+                        <!-- USER -->
+                        <td>
+                            {{ log.user_email or "Anonymous" }}
+                        </td>
+
+
+                        <!-- TIMESTAMP -->
+                        <td>
+                            {{ log.timestamp.strftime("%Y-%m-%d %H:%M:%S") }}
+                        </td>
+
+
+                        <!-- ACTION -->
+                        <td>
+
+                            {% if log.action == "LOGIN" %}
+
+                                <span class="badge blue">
+                                    LOGIN
+                                </span>
+
+                            {% elif log.action == "LOGOUT" %}
+
+                                <span class="badge gray">
+                                    LOGOUT
+                                </span>
+
+                            {% elif log.action == "CREATE" %}
+
+                                <span class="badge green">
+                                    CREATE
+                                </span>
+
+                            {% elif log.action == "UPDATE" %}
+
+                                <span class="badge orange">
+                                    UPDATE
+                                </span>
+
+                            {% elif log.action == "DELETE" %}
+
+                                <span class="badge red">
+                                    DELETE
+                                </span>
+
+                            {% elif log.action == "REGISTER" %}
+
+                                <span class="badge purple">
+                                    REGISTER
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge">
+                                    {{ log.action }}
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- MODULE -->
+                        <td>
+                            {{ log.module }}
+                        </td>
+
+
+                        <!-- RECORD -->
+                        <td>
+                            {{ log.record_id or "-" }}
+                        </td>
+
+
+                        <!-- RESULT -->
+                        <td>
+
+                            {% if log.result == "Success" %}
+
+                                <span class="badge green">
+                                    Success
+                                </span>
+
+                            {% elif log.result == "Failed" %}
+
+                                <span class="badge red">
+                                    Failed
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge">
+                                    {{ log.result }}
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- DETAILS -->
+                        <td class="details-cell">
+                            {{ log.details or "-" }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <!-- EMPTY STATE -->
+
+        <div class="empty-state">
+
+            <div class="empty-icon">
+                🔍
+            </div>
+
+            <h3>No Audit Logs Found</h3>
+
+            {% if search %}
+
+                <p>
+                    No audit records matched
+                    "<strong>{{ search }}</strong>".
+                </p>
+
+                <a
+                    href="{{ url_for('audit_logs') }}"
+                    class="btn"
+                >
+                    Clear Search
+                </a>
+
+            {% else %}
+
+                <p>
+                    Audit activities will appear here
+                    when users interact with the system.
+                </p>
+
+            {% endif %}
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- PAGE STYLES -->
+
+<style>
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px;
+    }
+
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+
+    .page-header h1 {
+        margin: 0 0 6px 0;
+        font-size: 30px;
+    }
+
+
+    .page-header p {
+        margin: 0;
+        color: #6b7280;
+    }
+
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 22px;
+        margin-bottom: 22px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    }
+
+
+    .search-form {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+
+    .search-form input {
+        flex: 1;
+        padding: 11px 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 14px;
+        outline: none;
+    }
+
+
+    .search-form input:focus {
+        border-color: #2563eb;
+    }
+
+
+    .btn {
+        display: inline-block;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 8px;
+        background: #2563eb;
+        color: white;
+        text-decoration: none;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+
+    .btn:hover {
+        background: #1d4ed8;
+    }
+
+
+    .btn.secondary {
+        background: #6b7280;
+    }
+
+
+    .btn.secondary:hover {
+        background: #4b5563;
+    }
+
+
+    .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+
+    .table-header h2 {
+        margin: 0 0 4px 0;
+        font-size: 20px;
+    }
+
+
+    .table-header p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1000px;
+    }
+
+
+    th {
+        background: #f8fafc;
+        color: #374151;
+        text-align: left;
+        padding: 13px;
+        border-bottom: 2px solid #e5e7eb;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+
+    td {
+        padding: 13px;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 13px;
+        vertical-align: middle;
+    }
+
+
+    tr:hover {
+        background: #f9fafb;
+    }
+
+
+    .details-cell {
+        max-width: 300px;
+        word-break: break-word;
+        color: #4b5563;
+    }
+
+
+    .badge {
+        display: inline-block;
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        color: #374151;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+
+    .badge.green {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+
+    .badge.red {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+
+    .badge.blue {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+
+    .badge.orange {
+        background: #ffedd5;
+        color: #9a3412;
+    }
+
+
+    .badge.purple {
+        background: #f3e8ff;
+        color: #6b21a8;
+    }
+
+
+    .badge.gray {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6b7280;
+    }
+
+
+    .empty-icon {
+        font-size: 40px;
+        margin-bottom: 10px;
+    }
+
+
+    .empty-state h3 {
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+
+    .empty-state p {
+        margin-bottom: 20px;
+    }
+
+
+    @media (max-width: 700px) {
+
+        .container {
+            padding: 15px;
+        }
+
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+
+        .search-form {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+
+        .search-form input {
+            width: auto;
+        }
+
+    }
+
+</style>
+
+{% endblock %}
